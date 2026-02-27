@@ -17,6 +17,7 @@ namespace KomM_LR6
                 Console.WriteLine("2 - Задача 2: Работа с очередью");
                 Console.WriteLine("3 - Задача 3: Решение уравнений (линейных и квадратных)");
                 Console.WriteLine("4 - Задача 4: Карточная игра");
+                Console.WriteLine("5 - Задача 5: Класс Rectangle (прямоугольник)");
                 Console.WriteLine("0 - Выход из программы");
                 Console.Write("Выберите задачу: ");
 
@@ -37,6 +38,9 @@ namespace KomM_LR6
                         break;
                     case "4":
                         Task4();
+                        break;
+                    case "5":
+                        Task5();
                         break;
                     case "0":
                         Console.WriteLine("Программа завершена.");
@@ -658,5 +662,88 @@ namespace KomM_LR6
                 Console.WriteLine("Ошибка: введите целые числа");
             }
         }
+        static void Task5()
+        {
+            Console.WriteLine("=== Задача 5: Класс Rectangle (Прямоугольник) ===\n");
+
+            try
+            {
+                Console.Write("Введите ширину и высоту прямоугольника через пробел (от 1 до 100): ");
+                string input = Console.ReadLine();
+
+                string[] parts = input.Split(' ');
+
+                List<string> filteredParts = new List<string>();
+                foreach (string part in parts)
+                {
+                    if (part != "")
+                    {
+                        filteredParts.Add(part);
+                    }
+                }
+
+                if (filteredParts.Count != 2)
+                {
+                    Console.WriteLine("Ошибка: нужно ввести ровно два числа (ширину и высоту)");
+                    return;
+                }
+
+                int width = int.Parse(filteredParts[0]);
+                int height = int.Parse(filteredParts[1]);
+
+                if (width < 1 || width > 100 || height < 1 || height > 100)
+                {
+                    Console.WriteLine("Ошибка: ширина и высота должны быть от 1 до 100");
+                    return;
+                }
+
+                Rectangle rect = new Rectangle(width, height);
+
+                Console.WriteLine("\nСоздан объект Rectangle:");
+                Console.WriteLine($"Ширина: {rect.Width}");
+                Console.WriteLine($"Высота: {rect.Height}");
+
+                int area = rect.GetArea();
+                int perimeter = rect.GetPerimeter();
+
+                Console.WriteLine($"\nПлощадь: {area}");
+                Console.WriteLine($"Периметр: {perimeter}");
+                Console.WriteLine($"Метод ToString(): {rect.ToString()}");
+            }
+            catch (FormatException)
+            {
+                Console.WriteLine("Ошибка: введите целые числа");
+            }
+        }
     }
+
+
+    class Rectangle ///////////////////////////////////////////////////////////////////////////////
+    {
+        public int Width { get; set; }
+        public int Height { get; set; }
+
+        public Rectangle(int width, int height)
+        {
+            Width = width;
+            Height = height;
+        }
+
+
+        public int GetArea()
+        {
+            return Width * Height;
+        }
+
+        public int GetPerimeter()
+        {
+            return 2 * (Width + Height);
+        }
+
+        public override string ToString()
+        {
+            return $"Rectangle {Width}x{Height}";
+        }
+    } /////////////////////////////////////////////////////////////////////////////////////////////
+
 }
