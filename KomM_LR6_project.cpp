@@ -18,6 +18,7 @@ namespace KomM_LR6
                 Console.WriteLine("3 - Задача 3: Решение уравнений (линейных и квадратных)");
                 Console.WriteLine("4 - Задача 4: Карточная игра");
                 Console.WriteLine("5 - Задача 5: Класс Rectangle (прямоугольник)");
+                Console.WriteLine("6 - Задача 6: Минимальный путь в таблице");
                 Console.WriteLine("0 - Выход из программы");
                 Console.Write("Выберите задачу: ");
 
@@ -41,6 +42,9 @@ namespace KomM_LR6
                         break;
                     case "5":
                         Task5();
+                        break;
+                    case "6":
+                        Task6();
                         break;
                     case "0":
                         Console.WriteLine("Программа завершена.");
@@ -715,6 +719,256 @@ namespace KomM_LR6
                 Console.WriteLine("Ошибка: введите целые числа");
             }
         }
+
+
+
+        static void Task6()
+        {
+            Console.WriteLine("=== Задача 6: Минимальный путь в таблице ===\n");
+            Console.WriteLine("Игрок начинает в левом верхнем углу (0,0) и должен дойти до правого нижнего угла.");
+            Console.WriteLine("Двигаться можно только вправо или вниз. В каждой клетке берется еда.\n");
+
+            try
+            {
+                // Ввод размеров таблицы
+                Console.Write("Введите размеры таблицы N и M через пробел: ");
+                string[] sizeInput = Console.ReadLine().Split(' ');
+
+                // Фильтруем пустые элементы
+                List<string> filteredSize = new List<string>();
+                foreach (string s in sizeInput)
+                {
+                    if (s != "")
+                        filteredSize.Add(s);
+                }
+
+                if (filteredSize.Count != 2)
+                {
+                    Console.WriteLine("Ошибка: нужно ввести два числа (N и M)");
+                    return;
+                }
+
+                int N = int.Parse(filteredSize[0]);
+                int M = int.Parse(filteredSize[1]);
+
+                // Проверка размеров
+                if (N < 1 || N > 20 || M < 1 || M > 20)
+                {
+                    Console.WriteLine("Ошибка: N и M должны быть от 1 до 20");
+                    return;
+                }
+
+                // Создаем таблицу для хранения значений
+                int[,] table = new int[N, M];
+
+                // Ввод значений таблицы
+                Console.WriteLine($"Введите {N} строк по {M} чисел в каждой (штрафы от 0 до 100):");
+
+                for (int i = 0; i < N; i++)
+                {
+                    Console.Write($"Строка {i + 1}: ");
+                    string[] rowInput = Console.ReadLine().Split(' ');
+
+                    // Фильтруем пустые элементы
+                    List<string> filteredRow = new List<string>();
+                    foreach (string s in rowInput)
+                    {
+                        if (s != "")
+                            filteredRow.Add(s);
+                    }
+
+                    if (filteredRow.Count != M)
+                    {
+                        Console.WriteLine($"Ошибка: в строке {i + 1} должно быть {M} чисел");
+                        return;
+                    }
+
+                    for (int j = 0; j < M; j++)
+                    {
+                        int value = int.Parse(filteredRow[j]);
+
+                        // Проверка значения
+                        if (value < 0 || value > 100)
+                        {
+                            Console.WriteLine("Ошибка: значения должны быть от 0 до 100");
+                            return;
+                        }
+
+                        table[i, j] = value;
+                    }
+                }
+
+                // Выводим введенную таблицу
+                Console.WriteLine("\nВведенная таблица штрафов:");
+                for (int i = 0; i < N; i++)
+                {
+                    for (int j = 0; j < M; j++)
+                    {
+                        Console.Write($"{table[i, j],4}");
+                    }
+                    Console.WriteLine();
+                }
+
+                // Создаем таблицу для динамического программирования
+                int[,] dp = new int[N, M];
+
+                // Начальная клетка (левый верхний угол)
+                dp[0, 0] = table[0, 0];
+
+                // Заполняем первую строку (можно двигаться только вправо)
+                for (int j = 1; j < M; j++)
+                {
+                    dp[0, j] = dp[0, j - 1] + table[0, j];
+                }
+
+                // Заполняем первый столбец (можно двигаться только вниз)
+                for (int i = 1; i < N; i++)
+                {
+                    dp[i, 0] = dp[i - 1, 0] + table[i, 0];
+                }
+
+                // Заполняем остальные клетки (выбираем минимальный путь сверху или слева)
+                for (int i = 1; i < N; i++)
+                {
+                    for (int j = 1; j < M; j++)
+                    {
+                        // Минимальная сумма пути до текущей клетки = 
+                        // значение в текущей клетке + минимум из верхней и левой клетки
+                        int fromTop = dp[i - 1, j];      // путь сверху
+                        int fromLeft = dp[i, j - 1];      // путь слева
+
+                        // Выбираем минимальный предыдущий путь
+                        int minPrev = Math.Min(fromTop, fromLeft);
+
+                        dp[i, j] = minPrev + table[i, j];
+                    }
+                }
+
+                // Выводим таблицу динамического программирования
+                Console.WriteLine("\nТаблица минимальных путей (DP):");
+                for (int i = 0; i < N; i++)
+                {
+                    for (int j = 0; j < M; j++)
+                    {
+                        Console.Write($"{dp[i, j],6}");
+                    }
+                    Console.WriteLine();
+                }
+
+                // Результат - значение в правом нижнем углу
+                int result = dp[N - 1, M - 1];
+
+                Console.WriteLine($"\nМинимальный вес еды: {result} кг");
+
+                // Восстанавливаем путь для наглядности
+                Console.WriteLine("\nОптимальный путь (координаты [ряд,столбец] и штраф):");
+
+                // Создаем список для хранения пути
+                List<string> path = new List<string>();
+
+                int row = N - 1;
+                int col = M - 1;
+
+                // Идем от конца к началу
+                while (row > 0 || col > 0)
+                {
+                    path.Add($"[{row + 1},{col + 1}] ({table[row, col]})");
+
+                    // Определяем, откуда пришли
+                    if (row == 0)
+                    {
+                        // В первой строке - пришли слева
+                        col--;
+                    }
+                    else if (col == 0)
+                    {
+                        // В первом столбце - пришли сверху
+                        row--;
+                    }
+                    else
+                    {
+                        // Сравниваем, откуда выгоднее пришли
+                        if (dp[row - 1, col] < dp[row, col - 1])
+                        {
+                            // Пришли сверху
+                            row--;
+                        }
+                        else
+                        {
+                            // Пришли слева
+                            col--;
+                        }
+                    }
+                }
+
+                // Добавляем стартовую клетку
+                path.Add($"[1,1] ({table[0, 0]})");
+
+                // Разворачиваем путь (шли от конца к началу)
+                path.Reverse();
+
+                // Выводим путь (исправлено: используем string.Join вместо метода Join)
+                Console.WriteLine(string.Join(" -> ", path));
+
+                // Проверяем сумму пути
+                int sumCheck = 0;
+                foreach (string step in path)
+                {
+                    // Извлекаем число из строки вида "[1,1] (5)"
+                    int startIndex = step.IndexOf('(') + 1;
+                    int endIndex = step.IndexOf(')');
+                    string numStr = step.Substring(startIndex, endIndex - startIndex);
+                    sumCheck += int.Parse(numStr);
+                }
+
+                Console.WriteLine($"\nПроверка суммы пути: {sumCheck} кг");
+
+                // Дополнительно: показываем все возможные пути для маленьких таблиц
+                if (N <= 3 && M <= 3)
+                {
+                    Console.WriteLine("\nВсе возможные пути (для наглядности):");
+                    FindAllPaths(table, N, M, 0, 0, table[0, 0].ToString(), table[0, 0]);
+                }
+            }
+            catch (FormatException)
+            {
+                Console.WriteLine("Ошибка: введите целые числа");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Произошла ошибка: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Вспомогательный метод для поиска всех путей (только для небольших таблиц)
+        /// </summary>
+        static void FindAllPaths(int[,] table, int N, int M, int row, int col, string path, int sum)
+        {
+            // Если дошли до правого нижнего угла
+            if (row == N - 1 && col == M - 1)
+            {
+                Console.WriteLine($"Путь: {path} = {sum}");
+                return;
+            }
+
+            // Двигаемся вправо
+            if (col + 1 < M)
+            {
+                FindAllPaths(table, N, M, row, col + 1,
+                    path + $" -> [{row + 1},{col + 2}] ({table[row, col + 1]})",
+                    sum + table[row, col + 1]);
+            }
+
+            // Двигаемся вниз
+            if (row + 1 < N)
+            {
+                FindAllPaths(table, N, M, row + 1, col,
+                    path + $" -> [{row + 2},{col + 1}] ({table[row + 1, col]})",
+                    sum + table[row + 1, col]);
+            }
+        }
+
     }
 
 
