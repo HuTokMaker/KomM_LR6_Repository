@@ -19,6 +19,7 @@ namespace KomM_LR6
                 Console.WriteLine("4 - Задача 4: Карточная игра");
                 Console.WriteLine("5 - Задача 5: Класс Rectangle (прямоугольник)");
                 Console.WriteLine("6 - Задача 6: Минимальный путь в таблице");
+                Console.WriteLine("7 - Задача 7: Компоненты связности в графе");
                 Console.WriteLine("0 - Выход из программы");
                 Console.Write("Выберите задачу: ");
 
@@ -45,6 +46,9 @@ namespace KomM_LR6
                         break;
                     case "6":
                         Task6();
+                        break;
+                    case "7":
+                        Task7(); // или Task7BFS() для версии с обходом в ширину
                         break;
                     case "0":
                         Console.WriteLine("Программа завершена.");
@@ -941,6 +945,288 @@ namespace KomM_LR6
         }
 
         /// <summary>
+        /// Задача 7: Компоненты связности в графе
+        /// </summary>
+        static void Task7()
+        {
+            Console.WriteLine("=== Задача 7: Компоненты связности в графе ===\n");
+
+            try
+            {
+                // Ввод количества вершин и ребер
+                Console.Write("Введите количество вершин N и ребер M через пробел: ");
+                string[] firstLine = Console.ReadLine().Split(' ');
+
+                // Фильтруем пустые элементы
+                List<string> filteredFirst = new List<string>();
+                foreach (string s in firstLine)
+                {
+                    if (s != "")
+                        filteredFirst.Add(s);
+                }
+
+                if (filteredFirst.Count != 2)
+                {
+                    Console.WriteLine("Ошибка: нужно ввести два числа (N и M)");
+                    return;
+                }
+
+                int N = int.Parse(filteredFirst[0]);
+                int M = int.Parse(filteredFirst[1]);
+
+                // Проверка ограничений
+                if (N <= 0 || N > 100000)
+                {
+                    Console.WriteLine("Ошибка: N должно быть от 1 до 100000");
+                    return;
+                }
+
+                if (M < 0 || M > 100000)
+                {
+                    Console.WriteLine("Ошибка: M должно быть от 0 до 100000");
+                    return;
+                }
+
+                // Создаем список смежности для графа
+                // Используем List<List<int>> для хранения связей
+                List<List<int>> graph = new List<List<int>>();
+                for (int i = 0; i <= N; i++) // индексация с 1 для удобства
+                {
+                    graph.Add(new List<int>());
+                }
+
+                // Ввод ребер
+                Console.WriteLine($"Введите {M} ребер (каждая строка: номер вершины i и номер вершины j):");
+                for (int k = 0; k < M; k++)
+                {
+                    Console.Write($"Ребро {k + 1}: ");
+                    string[] edgeLine = Console.ReadLine().Split(' ');
+
+                    // Фильтруем пустые элементы
+                    List<string> filteredEdge = new List<string>();
+                    foreach (string s in edgeLine)
+                    {
+                        if (s != "")
+                            filteredEdge.Add(s);
+                    }
+
+                    if (filteredEdge.Count != 2)
+                    {
+                        Console.WriteLine($"Ошибка: нужно ввести два числа для ребра {k + 1}");
+                        return;
+                    }
+
+                    int u = int.Parse(filteredEdge[0]);
+                    int v = int.Parse(filteredEdge[1]);
+
+                    // Проверка корректности вершин
+                    if (u < 1 || u > N || v < 1 || v > N)
+                    {
+                        Console.WriteLine($"Ошибка: вершины должны быть от 1 до {N}");
+                        return;
+                    }
+
+                    // Добавляем ребро в граф (неориентированный граф - добавляем в обе стороны)
+                    graph[u].Add(v);
+                    graph[v].Add(u);
+                }
+
+                // Массив для отслеживания посещенных вершин
+                bool[] visited = new bool[N + 1]; // индексация с 1
+
+                // Список для хранения всех компонент связности
+                List<List<int>> components = new List<List<int>>();
+
+                // Обходим все вершины
+                for (int vertex = 1; vertex <= N; vertex++)
+                {
+                    if (!visited[vertex])
+                    {
+                        // Начинаем новую компоненту связности
+                        List<int> component = new List<int>();
+
+                        // Используем стек для DFS (обход в глубину)
+                        Stack<int> stack = new Stack<int>();
+                        stack.Push(vertex);
+                        visited[vertex] = true;
+
+                        while (stack.Count > 0)
+                        {
+                            int current = stack.Pop();
+                            component.Add(current);
+
+                            // Добавляем всех соседей, которые еще не посещены
+                            foreach (int neighbor in graph[current])
+                            {
+                                if (!visited[neighbor])
+                                {
+                                    visited[neighbor] = true;
+                                    stack.Push(neighbor);
+                                }
+                            }
+                        }
+
+                        // Добавляем компоненту в список компонент
+                        components.Add(component);
+                    }
+                }
+
+                // Выводим результат
+                Console.WriteLine($"\nКоличество компонент связности: {components.Count}");
+                Console.WriteLine("\nКомпоненты связности:");
+
+                for (int i = 0; i < components.Count; i++)
+                {
+                    Console.WriteLine($"\nКомпонента {i + 1}:");
+                    Console.WriteLine($"Количество вершин: {components[i].Count}");
+
+                    // Сортируем вершины для красивого вывода
+                    components[i].Sort();
+
+                    Console.Write("Вершины: ");
+                    for (int j = 0; j < components[i].Count; j++)
+                    {
+                        Console.Write(components[i][j]);
+                        if (j < components[i].Count - 1)
+                            Console.Write(" ");
+                    }
+                    Console.WriteLine();
+                }
+
+                // Для больших графов выводим только статистику
+                if (N > 50)
+                {
+                    Console.WriteLine($"\nПримечание: показаны только компоненты (всего {components.Count} шт.)");
+                    Console.WriteLine("Для каждой компоненты показано количество вершин:");
+                    for (int i = 0; i < components.Count; i++)
+                    {
+                        Console.WriteLine($"Компонента {i + 1}: {components[i].Count} вершин");
+                    }
+                }
+            }
+            catch (FormatException)
+            {
+                Console.WriteLine("Ошибка: введите целые числа");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Произошла ошибка: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Альтернативная версия с использованием BFS (обход в ширину)
+        /// </summary>
+        static void Task7BFS()
+        {
+            Console.WriteLine("=== Задача 7: Компоненты связности в графе (BFS) ===\n");
+
+            try
+            {
+                // Ввод количества вершин и ребер
+                Console.Write("Введите количество вершин N и ребер M через пробел: ");
+                string[] firstLine = Console.ReadLine().Split(' ');
+
+                // Фильтруем пустые элементы
+                List<string> filteredFirst = new List<string>();
+                foreach (string s in firstLine)
+                {
+                    if (s != "")
+                        filteredFirst.Add(s);
+                }
+
+                if (filteredFirst.Count != 2)
+                {
+                    Console.WriteLine("Ошибка: нужно ввести два числа (N и M)");
+                    return;
+                }
+
+                int N = int.Parse(filteredFirst[0]);
+                int M = int.Parse(filteredFirst[1]);
+
+                // Создаем список смежности
+                List<List<int>> graph = new List<List<int>>();
+                for (int i = 0; i <= N; i++)
+                {
+                    graph.Add(new List<int>());
+                }
+
+                // Ввод ребер
+                Console.WriteLine($"Введите {M} ребер (каждая строка: i j):");
+                for (int k = 0; k < M; k++)
+                {
+                    Console.Write($"Ребро {k + 1}: ");
+                    string[] edgeLine = Console.ReadLine().Split(' ');
+
+                    // Фильтруем пустые элементы
+                    List<string> filteredEdge = new List<string>();
+                    foreach (string s in edgeLine)
+                    {
+                        if (s != "")
+                            filteredEdge.Add(s);
+                    }
+
+                    int u = int.Parse(filteredEdge[0]);
+                    int v = int.Parse(filteredEdge[1]);
+
+                    graph[u].Add(v);
+                    graph[v].Add(u);
+                }
+
+                // Поиск компонент связности с помощью BFS
+                bool[] visited = new bool[N + 1];
+                List<List<int>> components = new List<List<int>>();
+
+                for (int start = 1; start <= N; start++)
+                {
+                    if (!visited[start])
+                    {
+                        // BFS обход
+                        Queue<int> queue = new Queue<int>();
+                        List<int> component = new List<int>();
+
+                        queue.Enqueue(start);
+                        visited[start] = true;
+
+                        while (queue.Count > 0)
+                        {
+                            int current = queue.Dequeue();
+                            component.Add(current);
+
+                            foreach (int neighbor in graph[current])
+                            {
+                                if (!visited[neighbor])
+                                {
+                                    visited[neighbor] = true;
+                                    queue.Enqueue(neighbor);
+                                }
+                            }
+                        }
+
+                        components.Add(component);
+                    }
+                }
+
+                // Вывод результатов
+                Console.WriteLine($"\nКоличество компонент связности: {components.Count}");
+
+                // Сортируем компоненты по размеру (для наглядности)
+                components.Sort((a, b) => b.Count.CompareTo(a.Count));
+
+                for (int i = 0; i < components.Count; i++)
+                {
+                    components[i].Sort();
+                    Console.WriteLine($"\nКомпонента {i + 1} (размер: {components[i].Count}):");
+                    Console.WriteLine(string.Join(" ", components[i]));
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка: {ex.Message}");
+            }
+        }
+
+        /// <summary>
         /// Вспомогательный метод для поиска всех путей (только для небольших таблиц)
         /// </summary>
         static void FindAllPaths(int[,] table, int N, int M, int row, int col, string path, int sum)
@@ -999,5 +1285,6 @@ namespace KomM_LR6
             return $"Rectangle {Width}x{Height}";
         }
     } /////////////////////////////////////////////////////////////////////////////////////////////
+
 
 }
