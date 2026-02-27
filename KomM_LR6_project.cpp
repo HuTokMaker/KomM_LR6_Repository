@@ -20,6 +20,7 @@ namespace KomM_LR6
                 Console.WriteLine("5 - Задача 5: Класс Rectangle (прямоугольник)");
                 Console.WriteLine("6 - Задача 6: Минимальный путь в таблице");
                 Console.WriteLine("7 - Задача 7: Компоненты связности в графе");
+                Console.WriteLine("8 - Задача 8: Кафе и купоны");
                 Console.WriteLine("0 - Выход из программы");
                 Console.Write("Выберите задачу: ");
 
@@ -49,6 +50,9 @@ namespace KomM_LR6
                         break;
                     case "7":
                         Task7(); // или Task7BFS() для версии с обходом в ширину
+                        break;
+                    case "8":
+                        Task8();
                         break;
                     case "0":
                         Console.WriteLine("Программа завершена.");
@@ -1223,6 +1227,246 @@ namespace KomM_LR6
             catch (Exception ex)
             {
                 Console.WriteLine($"Ошибка: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Задача 8: Кафе и купоны (динамическое программирование)
+        /// </summary>
+        static void Task8()
+        {
+            Console.WriteLine("=== Задача 8: Кафе и купоны ===\n");
+
+            try
+            {
+                // Ввод количества дней
+                Console.Write("Введите количество дней N (0-100): ");
+                string nInput = Console.ReadLine().Trim();
+
+                int N = int.Parse(nInput);
+
+                // Проверка ограничений
+                if (N < 0 || N > 100)
+                {
+                    Console.WriteLine("Ошибка: N должно быть от 0 до 100");
+                    return;
+                }
+
+                // Если дней нет, выводим нулевой результат
+                if (N == 0)
+                {
+                    Console.WriteLine("\nМинимальная сумма: 0");
+                    Console.WriteLine("Неиспользованных купонов: 0");
+                    Console.WriteLine("Использованных купонов: 0");
+                    return;
+                }
+
+                // Массив стоимостей обедов
+                int[] prices = new int[N + 1]; // индексация с 1 для удобства
+
+                Console.WriteLine($"Введите стоимость обеда для каждого из {N} дней:");
+                for (int i = 1; i <= N; i++)
+                {
+                    Console.Write($"День {i}: ");
+                    prices[i] = int.Parse(Console.ReadLine().Trim());
+
+                    // Проверка стоимости
+                    if (prices[i] < 0 || prices[i] > 300)
+                    {
+                        Console.WriteLine("Ошибка: стоимость должна быть от 0 до 300");
+                        return;
+                    }
+                }
+
+                // Максимальное количество купонов, которое можно получить за N дней
+                int maxCoupons = N; // в худшем случае каждый день получаем купон
+
+                // Таблица динамического программирования
+                // dp[i][j] - минимальная стоимость после i дней с j неиспользованными купонами
+                int[,] dp = new int[N + 1, maxCoupons + 2];
+
+                // Массив для восстановления пути (откуда пришли)
+                Tuple<int, int>[,] prev = new Tuple<int, int>[N + 1, maxCoupons + 2];
+
+                // Инициализация большими числами
+                for (int i = 0; i <= N; i++)
+                {
+                    for (int j = 0; j <= maxCoupons + 1; j++)
+                    {
+                        dp[i, j] = int.MaxValue / 2; // чтобы избежать переполнения
+                    }
+                }
+
+                // Начальное состояние: 0 дней, 0 купонов, стоимость 0
+                dp[0, 0] = 0;
+
+                // Заполнение таблицы DP
+                for (int i = 1; i <= N; i++)
+                {
+                    for (int j = 0; j <= maxCoupons; j++)
+                    {
+                        // Если текущее состояние недостижимо, пропускаем
+                        if (dp[i - 1, j] == int.MaxValue / 2)
+                            continue;
+
+                        int cost = prices[i];
+
+                        // Вариант 1: Покупаем обед за деньги
+                        if (cost > 100)
+                        {
+                            // Если обед дороже 100, получаем купон
+                            if (j + 1 <= maxCoupons)
+                            {
+                                if (dp[i, j + 1] > dp[i - 1, j] + cost)
+                                {
+                                    dp[i, j + 1] = dp[i - 1, j] + cost;
+                                    prev[i, j + 1] = new Tuple<int, int>(i - 1, j);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // Если обед не дороже 100, купон не получаем
+                            if (dp[i, j] > dp[i - 1, j] + cost)
+                            {
+                                dp[i, j] = dp[i - 1, j] + cost;
+                                prev[i, j] = new Tuple<int, int>(i - 1, j);
+                            }
+                        }
+
+                        // Вариант 2: Используем купон (если есть)
+                        if (j > 0)
+                        {
+                            if (dp[i, j - 1] > dp[i - 1, j])
+                            {
+                                dp[i, j - 1] = dp[i - 1, j];
+                                prev[i, j - 1] = new Tuple<int, int>(i - 1, j);
+                            }
+                        }
+                    }
+                }
+
+                // Поиск оптимального состояния после всех дней
+                int minCost = int.MaxValue;
+                int bestCoupons = -1;
+
+                for (int j = 0; j <= maxCoupons; j++)
+                {
+                    if (dp[N, j] < minCost)
+                    {
+                        minCost = dp[N, j];
+                        bestCoupons = j;
+                    }
+                    else if (dp[N, j] == minCost && j > bestCoupons)
+                    {
+                        // Если стоимость одинаковая, выбираем с бОльшим количеством оставшихся купонов
+                        bestCoupons = j;
+                    }
+                }
+
+                // Восстанавливаем, в какие дни использовались купоны
+                List<int> usedCouponDays = new List<int>();
+                int currentDay = N;
+                int currentCoupons = bestCoupons;
+
+                while (currentDay > 0)
+                {
+                    Tuple<int, int> previous = prev[currentDay, currentCoupons];
+                    int prevDay = previous.Item1;
+                    int prevCoupons = previous.Item2;
+
+                    // Если количество купонов уменьшилось, значит в этот день использовали купон
+                    if (prevCoupons > currentCoupons)
+                    {
+                        usedCouponDays.Add(currentDay);
+                    }
+
+                    currentDay = prevDay;
+                    currentCoupons = prevCoupons;
+                }
+
+                // Сортируем дни использования купонов по возрастанию
+                usedCouponDays.Sort();
+
+                // Количество использованных купонов
+                int usedCount = usedCouponDays.Count;
+
+                // Вывод результатов
+                Console.WriteLine($"\nМинимальная сумма: {minCost}");
+                Console.WriteLine($"Неиспользованных купонов: {bestCoupons}");
+                Console.WriteLine($"Использованных купонов: {usedCount}");
+
+                if (usedCount > 0)
+                {
+                    Console.WriteLine("Дни использования купонов:");
+                    foreach (int day in usedCouponDays)
+                    {
+                        Console.WriteLine(day);
+                    }
+                }
+
+                // Дополнительная информация для отладки
+                Console.WriteLine("\nДетализация по дням:");
+                int sum = 0;
+                int coupons = 0;
+
+                for (int i = 1; i <= N; i++)
+                {
+                    if (usedCouponDays.Contains(i))
+                    {
+                        Console.WriteLine($"День {i}: использован купон (бесплатно)");
+                        coupons--;
+                    }
+                    else
+                    {
+                        sum += prices[i];
+                        if (prices[i] > 100)
+                        {
+                            Console.WriteLine($"День {i}: куплен за {prices[i]} руб. (получен купон)");
+                            coupons++;
+                        }
+                        else
+                        {
+                            Console.WriteLine($"День {i}: куплен за {prices[i]} руб.");
+                        }
+                    }
+                }
+
+                Console.WriteLine($"\nПроверка: итоговая сумма = {sum}, оставшиеся купоны = {coupons}");
+            }
+            catch (FormatException)
+            {
+                Console.WriteLine("Ошибка: введите целые числа");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Произошла ошибка: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Упрощенная версия для класса Tuple (если используется старая версия C#)
+        /// </summary>
+        public class Tuple<T1, T2>
+        {
+            public T1 Item1 { get; private set; }
+            public T2 Item2 { get; private set; }
+
+            public Tuple(T1 item1, T2 item2)
+            {
+                Item1 = item1;
+                Item2 = item2;
+            }
+        }
+
+        /// <summary>
+        /// Вспомогательный класс для создания кортежей
+        /// </summary>
+        public static class Tuple
+        {
+            public static Tuple<T1, T2> Create<T1, T2>(T1 item1, T2 item2)
+            {
+                return new Tuple<T1, T2>(item1, item2);
             }
         }
 
