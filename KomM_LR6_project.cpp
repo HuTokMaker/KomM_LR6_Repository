@@ -16,6 +16,7 @@ namespace KomM_LR6
                 Console.WriteLine("1 - Задача 1: Переселение в Лайнландии");
                 Console.WriteLine("2 - Задача 2: Работа с очередью");
                 Console.WriteLine("3 - Задача 3: Решение уравнений (линейных и квадратных)");
+                Console.WriteLine("4 - Задача 4: Карточная игра");
                 Console.WriteLine("0 - Выход из программы");
                 Console.Write("Выберите задачу: ");
 
@@ -33,6 +34,9 @@ namespace KomM_LR6
                         break;
                     case "3":
                         Task3();
+                        break;
+                    case "4":
+                        Task4();
                         break;
                     case "0":
                         Console.WriteLine("Программа завершена.");
@@ -492,6 +496,166 @@ namespace KomM_LR6
                         Console.WriteLine($"  x₂ = (-b + √D)/(2a) = ({-b} + {Math.Sqrt(d):F2})/(2·{a}) = {(-b + Math.Sqrt(d)) / (2 * a):F2}");
                     }
                 }
+            }
+        }
+
+        static void Task4()
+        {
+            Console.WriteLine("=== Задача 4: Карточная игра ===\n");
+            Console.WriteLine("Правила игры:");
+            Console.WriteLine("- У каждого игрока по 3 карты от 1 до 9");
+            Console.WriteLine("- Игроки по очереди вскрывают верхние карты");
+            Console.WriteLine("- У кого карта больше, забирает обе карты себе");
+            Console.WriteLine("- Победитель кладет под низ сначала свою карту, затем карту соперника");
+            Console.WriteLine("- Игра идет до 100 ходов максимум\n");
+
+            try
+            {
+                Console.Write("Введите 3 карты первого игрока (через пробел): ");
+                string[] firstInput = Console.ReadLine().Split(' ');
+
+                Console.Write("Введите 3 карты второго игрока (через пробел): ");
+                string[] secondInput = Console.ReadLine().Split(' ');
+
+                if (firstInput.Length != 3 || secondInput.Length != 3)
+                {
+                    Console.WriteLine("Ошибка: нужно ввести ровно 3 карты для каждого игрока");
+                    return;
+                }
+
+                Queue<int> firstPlayer = new Queue<int>();
+                Queue<int> secondPlayer = new Queue<int>();
+
+                Console.WriteLine("\nНачальные колоды:");
+                Console.Write("Первый игрок: ");
+                for (int i = 0; i < 3; i++)
+                {
+                    int card = int.Parse(firstInput[i]);
+
+                    if (card < 1 || card > 9)
+                    {
+                        Console.WriteLine("Ошибка: карты должны быть от 1 до 9");
+                        return;
+                    }
+
+                    firstPlayer.Enqueue(card);
+                    Console.Write(card + " ");
+                }
+                Console.WriteLine();
+
+                Console.Write("Второй игрок: ");
+                for (int i = 0; i < 3; i++)
+                {
+                    int card = int.Parse(secondInput[i]);
+
+                    if (card < 1 || card > 9)
+                    {
+                        Console.WriteLine("Ошибка: карты должны быть от 1 до 9");
+                        return;
+                    }
+
+                    secondPlayer.Enqueue(card);
+                    Console.Write(card + " ");
+                }
+                Console.WriteLine("\n");
+
+                int moves = 0;
+                int maxMoves = 100;
+                bool gameFinished = false;
+
+                while (moves < maxMoves && !gameFinished)
+                {
+                    moves++;
+                    Console.WriteLine($"Ход {moves}:");
+
+                    if (firstPlayer.Count == 0)
+                    {
+                        Console.WriteLine($"Второй игрок победил! Первый игрок остался без карт.");
+                        Console.WriteLine($"Количество ходов: {moves - 1}");
+                        return;
+                    }
+                    if (secondPlayer.Count == 0)
+                    {
+                        Console.WriteLine($"Первый игрок победил! Второй игрок остался без карт.");
+                        Console.WriteLine($"Количество ходов: {moves - 1}");
+                        return;
+                    }
+
+                    int firstCard = firstPlayer.Dequeue();
+                    int secondCard = secondPlayer.Dequeue();
+
+                    Console.WriteLine($"Первый игрок показывает карту: {firstCard}");
+                    Console.WriteLine($"Второй игрок показывает карту: {secondCard}");
+
+                    if (firstCard > secondCard)
+                    {
+                        Console.WriteLine($"Первый игрок забирает карты!");
+
+                        firstPlayer.Enqueue(firstCard);   
+                        firstPlayer.Enqueue(secondCard);  
+                    }
+                    else if (secondCard > firstCard)
+                    {
+                        Console.WriteLine($"Второй игрок забирает карты!");
+
+                        secondPlayer.Enqueue(secondCard);
+                        secondPlayer.Enqueue(firstCard);  
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Ничья! Карты равны, возвращаем их обратно в колоды");
+
+                        firstPlayer.Enqueue(firstCard);
+                        secondPlayer.Enqueue(secondCard);
+                    }
+
+                    Console.Write("Колода первого игрока: ");
+                    if (firstPlayer.Count == 0)
+                        Console.Write("пуста");
+                    else
+                    {
+                        foreach (int card in firstPlayer)
+                        {
+                            Console.Write(card + " ");
+                        }
+                    }
+                    Console.WriteLine();
+
+                    Console.Write("Колода второго игрока: ");
+                    if (secondPlayer.Count == 0)
+                        Console.Write("пуста");
+                    else
+                    {
+                        foreach (int card in secondPlayer)
+                        {
+                            Console.Write(card + " ");
+                        }
+                    }
+                    Console.WriteLine("\n");
+
+                    if (firstPlayer.Count == 0)
+                    {
+                        Console.WriteLine($"Игра окончена! Второй игрок победил!");
+                        Console.WriteLine($"Количество ходов: {moves}");
+                        gameFinished = true;
+                    }
+                    else if (secondPlayer.Count == 0)
+                    {
+                        Console.WriteLine($"Игра окончена! Первый игрок победил!");
+                        Console.WriteLine($"Количество ходов: {moves}");
+                        gameFinished = true;
+                    }
+                }
+
+                if (!gameFinished)
+                {
+                    Console.WriteLine($"Игра не закончилась за {maxMoves} ходов!");
+                    Console.WriteLine("Возможно, возник цикл или требуется больше ходов.");
+                }
+            }
+            catch (FormatException)
+            {
+                Console.WriteLine("Ошибка: введите целые числа");
             }
         }
     }
