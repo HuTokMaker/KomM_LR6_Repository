@@ -15,6 +15,7 @@ namespace KomM_LR6
                 Console.WriteLine("\nГлавное меню");
                 Console.WriteLine("1 - Задача 1: Переселение в Лайнландии");
                 Console.WriteLine("2 - Задача 2: Работа с очередью");
+                Console.WriteLine("3 - Задача 3: Решение уравнений (линейных и квадратных)");
                 Console.WriteLine("0 - Выход из программы");
                 Console.Write("Выберите задачу: ");
 
@@ -29,6 +30,9 @@ namespace KomM_LR6
                         break;
                     case "2":
                         Task2();
+                        break;
+                    case "3":
+                        Task3();
                         break;
                     case "0":
                         Console.WriteLine("Программа завершена.");
@@ -225,6 +229,267 @@ namespace KomM_LR6
                             Console.Write(item + " ");
                         }
                         Console.WriteLine();
+                    }
+                }
+            }
+        }
+
+
+
+
+        static void Task3()
+        {
+            Console.WriteLine("=== Задача 3: Решение уравнений ===\n");
+            Console.WriteLine("Введите коэффициенты уравнения (от 1 до 3 чисел через пробел):");
+            Console.WriteLine("Примеры:");
+            Console.WriteLine("  1 -2 1  -> x^2 - 2x + 1 = 0");
+            Console.WriteLine("  2 4      -> 2x + 4 = 0");
+            Console.WriteLine("  5        -> 5 = 0\n");
+            Console.Write("Коэффициенты: ");
+
+            string input = Console.ReadLine();
+            string[] parts = input.Split(' ');
+
+            List<string> filteredParts = new List<string>();
+            foreach (string part in parts)
+            {
+                if (part != "")
+                {
+                    filteredParts.Add(part);
+                }
+            }
+
+            if (filteredParts.Count < 1 || filteredParts.Count > 3)
+            {
+                Console.WriteLine("Ошибка: нужно ввести от 1 до 3 коэффициентов");
+                return;
+            }
+
+            try
+            {
+                double[] coefficients = new double[filteredParts.Count];
+                for (int i = 0; i < filteredParts.Count; i++)
+                {
+                    coefficients[i] = double.Parse(filteredParts[i]);
+                }
+
+                Console.Write("\nУравнение: ");
+                PrintEquation(coefficients);
+
+                double[] roots = Solve(coefficients);
+
+                Console.Write("Корни: ");
+                Print(roots);
+
+                Console.WriteLine("\nПояснение:");
+                ExplainSolution(coefficients, roots);
+            }
+            catch (FormatException)
+            {
+                Console.WriteLine("Ошибка: введите числа, разделенные пробелами");
+            }
+        }
+
+        static double[] Solve(params double[] coefficients)
+        {
+
+            if (coefficients.Length == 1)
+            {
+                return new double[0];
+            }
+            else if (coefficients.Length == 2)
+            {
+                double b = coefficients[0];
+                double c = coefficients[1];
+
+                if (b == 0)
+                {
+                    return new double[0];
+                }
+                else
+                {
+                    double root = -c / b;
+                    return new double[] { root };
+                }
+            }
+            else if (coefficients.Length == 3)
+            {
+                double a = coefficients[0];
+                double b = coefficients[1];
+                double c = coefficients[2];
+
+                if (a == 0)
+                {
+                    return Solve(b, c);
+                }
+
+                double discriminant = b * b - 4 * a * c;
+
+                if (discriminant < 0)
+                {
+                    return new double[0];
+                }
+                else if (discriminant == 0)
+                {
+                    double root = -b / (2 * a);
+                    return new double[] { root };
+                }
+                else
+                {
+                    double sqrtDiscriminant = Math.Sqrt(discriminant);
+                    double root1 = (-b - sqrtDiscriminant) / (2 * a);
+                    double root2 = (-b + sqrtDiscriminant) / (2 * a);
+
+                    if (root1 < root2)
+                    {
+                        return new double[] { root1, root2 };
+                    }
+                    else
+                    {
+                        return new double[] { root2, root1 };
+                    }
+                }
+            }
+            else
+            {
+                return new double[0];
+            }
+        }
+
+        static void Print(params double[] roots)
+        {
+            if (roots.Length == 0)
+            {
+                Console.WriteLine("нет действительных корней");
+            }
+            else
+            {
+                for (int i = 0; i < roots.Length; i++)
+                {
+                    if (roots[i] == Math.Floor(roots[i]))
+                    {
+                        Console.Write((int)roots[i]);
+                    }
+                    else
+                    {
+                        Console.Write(roots[i].ToString("F2"));
+                    }
+
+                    if (i < roots.Length - 1)
+                    {
+                        Console.Write(" ");
+                    }
+                }
+                Console.WriteLine();
+            }
+        }
+
+        static void PrintEquation(double[] coefficients)
+        {
+            if (coefficients.Length == 3)
+            {
+                PrintTerm(coefficients[0], "x^2");
+                PrintTerm(coefficients[1], "x");
+                PrintConstant(coefficients[2]);
+                Console.WriteLine(" = 0");
+            }
+            else if (coefficients.Length == 2)
+            {
+                PrintTerm(coefficients[0], "x");
+                PrintConstant(coefficients[1]);
+                Console.WriteLine(" = 0");
+            }
+            else
+            {
+                Console.WriteLine($"{coefficients[0]} = 0");
+            }
+        }
+
+        static void PrintTerm(double coefficient, string variable)
+        {
+            if (coefficient == 0) return;
+
+            if (coefficient > 0)
+            {
+                if (coefficient == 1)
+                    Console.Write($"+ {variable} ");
+                else
+                    Console.Write($"+ {coefficient}{variable} ");
+            }
+            else
+            {
+                if (coefficient == -1)
+                    Console.Write($"- {variable} ");
+                else
+                    Console.Write($"- {Math.Abs(coefficient)}{variable} ");
+            }
+        }
+
+        static void PrintConstant(double constant)
+        {
+            if (constant == 0) return;
+
+            if (constant > 0)
+                Console.Write($"+ {constant} ");
+            else
+                Console.Write($"- {Math.Abs(constant)} ");
+        }
+
+        static void ExplainSolution(double[] coefficients, double[] roots)
+        {
+            if (coefficients.Length == 1)
+            {
+                Console.WriteLine($"- Это уравнение вида {coefficients[0]} = 0");
+                if (coefficients[0] == 0)
+                {
+                    Console.WriteLine("- 0 = 0 верно для любого x, но по условию выводим пустую строку");
+                }
+                else
+                {
+                    Console.WriteLine($"- {coefficients[0]} ≠ 0, поэтому нет решений");
+                }
+            }
+            else if (coefficients.Length == 2)
+            {
+                Console.WriteLine($"- Это линейное уравнение: {coefficients[0]}x + {coefficients[1]} = 0");
+                if (coefficients[0] == 0)
+                {
+                    Console.WriteLine($"- Коэффициент при x равен 0, значит это не линейное уравнение");
+                }
+                else
+                {
+                    Console.WriteLine($"- x = -{coefficients[1]} / {coefficients[0]} = {-coefficients[1] / coefficients[0]:F2}");
+                }
+            }
+            else if (coefficients.Length == 3)
+            {
+                if (coefficients[0] == 0)
+                {
+                    Console.WriteLine($"- Коэффициент a = 0, поэтому это линейное уравнение");
+                }
+                else
+                {
+                    double a = coefficients[0];
+                    double b = coefficients[1];
+                    double c = coefficients[2];
+                    double d = b * b - 4 * a * c;
+
+                    Console.WriteLine($"- Это квадратное уравнение: {a}x^2 + {b}x + {c} = 0");
+                    Console.WriteLine($"- Дискриминант D = b² - 4ac = {b}² - 4·{a}·{c} = {d:F2}");
+
+                    if (d < 0)
+                    {
+                        Console.WriteLine($"- D < 0, поэтому нет действительных корней");
+                    }
+                    else if (d == 0)
+                    {
+                        Console.WriteLine($"- D = 0, поэтому один корень: x = -b/(2a) = {-b}/(2·{a}) = {-b / (2 * a):F2}");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"- D > 0, поэтому два корня:");
+                        Console.WriteLine($"  x₁ = (-b - √D)/(2a) = ({-b} - {Math.Sqrt(d):F2})/(2·{a}) = {(-b - Math.Sqrt(d)) / (2 * a):F2}");
+                        Console.WriteLine($"  x₂ = (-b + √D)/(2a) = ({-b} + {Math.Sqrt(d):F2})/(2·{a}) = {(-b + Math.Sqrt(d)) / (2 * a):F2}");
                     }
                 }
             }
