@@ -14,6 +14,7 @@ namespace KomM_LR6
             {
                 Console.WriteLine("\nГлавное меню");
                 Console.WriteLine("1 - Задача 1: Переселение в Лайнландии");
+                Console.WriteLine("2 - Задача 2: Работа с очередью");
                 Console.WriteLine("0 - Выход из программы");
                 Console.Write("Выберите задачу: ");
 
@@ -25,6 +26,9 @@ namespace KomM_LR6
                 {
                     case "1":
                         Task1();
+                        break;
+                    case "2":
+                        Task2();
                         break;
                     case "0":
                         Console.WriteLine("Программа завершена.");
@@ -120,6 +124,109 @@ namespace KomM_LR6
             catch (Exception ex)
             {
                 Console.WriteLine($"Произошла ошибка: {ex.Message}");
+            }
+        }
+
+        static void Task2()
+        {
+            Console.WriteLine("=== Задача 2: Работа с очередью ===\n");
+            Console.WriteLine("Доступные команды:");
+            Console.WriteLine("  push n  - добавить число n в очередь");
+            Console.WriteLine("  pop     - удалить первый элемент");
+            Console.WriteLine("  front   - показать первый элемент");
+            Console.WriteLine("  size    - показать размер очереди");
+            Console.WriteLine("  clear   - очистить очередь");
+            Console.WriteLine("  exit    - выйти из задачи\n");
+
+            Queue<int> queue = new Queue<int>();
+
+            while (true)
+            {
+                Console.Write("Введите команду: ");
+                string input = Console.ReadLine();
+
+                string[] parts = input.Split(' ');
+                string command = parts[0].ToLower();
+
+                switch (command)
+                {
+                    case "push":
+                        if (parts.Length < 2)
+                        {
+                            Console.WriteLine("Ошибка: укажите число для добавления");
+                            break;
+                        }
+
+                        try
+                        {
+                            int number = int.Parse(parts[1]);
+                            queue.Enqueue(number);
+                            Console.WriteLine("ok");
+                        }
+                        catch (FormatException)
+                        {
+                            Console.WriteLine("Ошибка: введите целое число");
+                        }
+                        break;
+
+                    case "pop":
+                        if (queue.Count == 0)
+                        {
+                            Console.WriteLine("error");
+                        }
+                        else
+                        {
+                            int popped = queue.Dequeue();
+                            Console.WriteLine(popped);
+                        }
+                        break;
+
+                    case "front":
+                        if (queue.Count == 0)
+                        {
+                            Console.WriteLine("error");
+                        }
+                        else
+                        {
+                            int front = queue.Peek();
+                            Console.WriteLine(front);
+                        }
+                        break;
+
+                    case "size":
+                        Console.WriteLine(queue.Count);
+                        break;
+
+                    case "clear":
+                        queue.Clear();
+                        Console.WriteLine("ok");
+                        break;
+
+                    case "exit":
+                        Console.WriteLine("bye");
+                        return;
+
+                    default:
+                        Console.WriteLine("Неизвестная команда");
+                        break;
+                }
+
+                if (command != "exit" && command != "clear")
+                {
+                    Console.Write("Текущая очередь: ");
+                    if (queue.Count == 0)
+                    {
+                        Console.WriteLine("пуста");
+                    }
+                    else
+                    {
+                        foreach (int item in queue)
+                        {
+                            Console.Write(item + " ");
+                        }
+                        Console.WriteLine();
+                    }
+                }
             }
         }
     }
