@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace KomM_LR6
+namespace KomM_LR6_project
 {
     internal class Program
     {
@@ -49,7 +49,7 @@ namespace KomM_LR6
                         Task6();
                         break;
                     case "7":
-                        Task7(); // или Task7BFS() для версии с обходом в ширину
+                        Task7();
                         break;
                     case "8":
                         Task8();
@@ -58,7 +58,7 @@ namespace KomM_LR6
                         Console.WriteLine("Программа завершена.");
                         return;
                     default:
-                        Console.WriteLine("Неверный ввод. Пожалуйста, выберите 1, 2 или 0.");
+                        Console.WriteLine("Неверный ввод. Пожалуйста, выберите задачу от 1 до 8.");
                         break;
                 }
 
@@ -110,7 +110,7 @@ namespace KomM_LR6
 
                 for (int i = 0; i < n; i++)
                 {
-                    result[i] = -1; 
+                    result[i] = -1;
 
                     for (int j = i + 1; j < n; j++)
                     {
@@ -607,15 +607,15 @@ namespace KomM_LR6
                     {
                         Console.WriteLine($"Первый игрок забирает карты!");
 
-                        firstPlayer.Enqueue(firstCard);   
-                        firstPlayer.Enqueue(secondCard);  
+                        firstPlayer.Enqueue(firstCard);
+                        firstPlayer.Enqueue(secondCard);
                     }
                     else if (secondCard > firstCard)
                     {
                         Console.WriteLine($"Второй игрок забирает карты!");
 
                         secondPlayer.Enqueue(secondCard);
-                        secondPlayer.Enqueue(firstCard);  
+                        secondPlayer.Enqueue(firstCard);
                     }
                     else
                     {
@@ -1115,118 +1115,6 @@ namespace KomM_LR6
             catch (Exception ex)
             {
                 Console.WriteLine($"Произошла ошибка: {ex.Message}");
-            }
-        }
-
-        /// <summary>
-        /// Альтернативная версия с использованием BFS (обход в ширину)
-        /// </summary>
-        static void Task7BFS()
-        {
-            Console.WriteLine("=== Задача 7: Компоненты связности в графе (BFS) ===\n");
-
-            try
-            {
-                // Ввод количества вершин и ребер
-                Console.Write("Введите количество вершин N и ребер M через пробел: ");
-                string[] firstLine = Console.ReadLine().Split(' ');
-
-                // Фильтруем пустые элементы
-                List<string> filteredFirst = new List<string>();
-                foreach (string s in firstLine)
-                {
-                    if (s != "")
-                        filteredFirst.Add(s);
-                }
-
-                if (filteredFirst.Count != 2)
-                {
-                    Console.WriteLine("Ошибка: нужно ввести два числа (N и M)");
-                    return;
-                }
-
-                int N = int.Parse(filteredFirst[0]);
-                int M = int.Parse(filteredFirst[1]);
-
-                // Создаем список смежности
-                List<List<int>> graph = new List<List<int>>();
-                for (int i = 0; i <= N; i++)
-                {
-                    graph.Add(new List<int>());
-                }
-
-                // Ввод ребер
-                Console.WriteLine($"Введите {M} ребер (каждая строка: i j):");
-                for (int k = 0; k < M; k++)
-                {
-                    Console.Write($"Ребро {k + 1}: ");
-                    string[] edgeLine = Console.ReadLine().Split(' ');
-
-                    // Фильтруем пустые элементы
-                    List<string> filteredEdge = new List<string>();
-                    foreach (string s in edgeLine)
-                    {
-                        if (s != "")
-                            filteredEdge.Add(s);
-                    }
-
-                    int u = int.Parse(filteredEdge[0]);
-                    int v = int.Parse(filteredEdge[1]);
-
-                    graph[u].Add(v);
-                    graph[v].Add(u);
-                }
-
-                // Поиск компонент связности с помощью BFS
-                bool[] visited = new bool[N + 1];
-                List<List<int>> components = new List<List<int>>();
-
-                for (int start = 1; start <= N; start++)
-                {
-                    if (!visited[start])
-                    {
-                        // BFS обход
-                        Queue<int> queue = new Queue<int>();
-                        List<int> component = new List<int>();
-
-                        queue.Enqueue(start);
-                        visited[start] = true;
-
-                        while (queue.Count > 0)
-                        {
-                            int current = queue.Dequeue();
-                            component.Add(current);
-
-                            foreach (int neighbor in graph[current])
-                            {
-                                if (!visited[neighbor])
-                                {
-                                    visited[neighbor] = true;
-                                    queue.Enqueue(neighbor);
-                                }
-                            }
-                        }
-
-                        components.Add(component);
-                    }
-                }
-
-                // Вывод результатов
-                Console.WriteLine($"\nКоличество компонент связности: {components.Count}");
-
-                // Сортируем компоненты по размеру (для наглядности)
-                components.Sort((a, b) => b.Count.CompareTo(a.Count));
-
-                for (int i = 0; i < components.Count; i++)
-                {
-                    components[i].Sort();
-                    Console.WriteLine($"\nКомпонента {i + 1} (размер: {components[i].Count}):");
-                    Console.WriteLine(string.Join(" ", components[i]));
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Ошибка: {ex.Message}");
             }
         }
 
